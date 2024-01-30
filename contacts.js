@@ -1,9 +1,5 @@
 const fs = require('node:fs');
-
-const readline = require('node:readline');
-const { stdin: input, stdout: output } = require('node:process');
-
-const rl = readline.createInterface({ input, output });
+const validator = require('validator')
 
 //cek apakah directory exists
 if(!fs.existsSync('data')) {
@@ -14,28 +10,38 @@ if(!fs.existsSync('data/contacts.json')) {
     fs.writeFileSync('data/contacts.json', '[]')
 }
 
-const pertanyaan = (tanya) => {
-    return new Promise((resolve, reject) => {
-        rl.question(tanya, jawaban => {
-            resolve(jawaban)
-        })  
-    })
-}
-
 const simpanContact = (nama, email, hp) => {
     const jawab = {nama, email, hp}
     const file = fs.readFileSync('data/contacts.json', 'utf-8')
     const contacts = JSON.parse(file)
+
+    //cek duplikat
+    const duplikat = contacts.find(contact => contact.nama === nama)
+    if (duplikat) {
+        console.log('kontak sudah terdaftar');
+        return false
+    }
     
+    //validasi email
+    if (email) {
+        if (!validator.isEmail(email)) {
+            console.log('email tidak valid');
+            return false            
+        }
+    }
+
+    //validasi nohp
+    if (!validator.isMobilePhone(hp, 'id-ID')) {
+        console.log('nohp tidak valid');
+        return false            
+    }
+
     contacts.push(jawab)
-    console.log(contacts);
     
     fs.writeFileSync('data/contacts.json', JSON.stringify(contacts))
-    
-    rl.close();
 }
 
-module.exports = {pertanyaan, simpanContact}
+module.exports = {simpanContact}
 
 // rl.question('Ini keknya kek alert atau apalah di js biasa kan? ', (a) => {
 //     rl.question('pertanyaan kedua: ', b => {
